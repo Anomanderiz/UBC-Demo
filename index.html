@@ -31,7 +31,7 @@ body{
   -webkit-font-smoothing:antialiased;
   line-height:1.45;
 }
-button{font:inherit;color:inherit}
+button{font:inherit;color:inherit;touch-action:manipulation}
 input,select{font:inherit;color:inherit}
 
 /* ---------- shell ---------- */
@@ -139,7 +139,7 @@ legend{font-size:.86rem;color:var(--muted);margin-bottom:8px;padding:0}
 .actions{
   position:sticky;bottom:0;background:#fff;border-top:1px solid var(--rule);
   padding:12px 20px calc(12px + env(safe-area-inset-bottom));
-  display:flex;gap:12px;z-index:20;
+  display:flex;gap:12px;z-index:20;transition:transform .18s ease;
 }
 .btn{min-height:52px;padding:0 22px;border-radius:26px;cursor:pointer;border:2px solid var(--ubc-blue);background:#fff;color:var(--ubc-blue)}
 .btn.primary{flex:1;background:var(--ubc-blue);color:#fff}
@@ -746,6 +746,26 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     });
   });
   document.getElementById('changeFund').onclick = function(){ step = 1; render(); };
+
+  // --- mobile: keep the action bar reachable while the keyboard is open ---
+  // Tapping a nav button must not first dismiss the keyboard (that shift is
+  // what made the first tap miss); preventing the pointerdown default keeps
+  // focus on the field, so the click lands immediately.
+  [back, next, give].forEach(function(b){
+    var keepFocus = function(e){ e.preventDefault(); };
+    b.addEventListener('pointerdown', keepFocus);
+    b.addEventListener('mousedown', keepFocus);
+  });
+  var actionsBar = document.getElementById('actions');
+  if (window.visualViewport) {
+    var vv = window.visualViewport;
+    var syncBar = function(){
+      var gap = window.innerHeight - vv.height - vv.offsetTop;
+      actionsBar.style.transform = gap > 1 ? 'translateY(-' + Math.round(gap) + 'px)' : '';
+    };
+    vv.addEventListener('resize', syncBar);
+    vv.addEventListener('scroll', syncBar);
+  }
 
   // rationale sheet
   var sheet = document.getElementById('whySheet');
