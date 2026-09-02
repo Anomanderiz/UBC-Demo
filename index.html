@@ -57,6 +57,7 @@ input,select{font:inherit;color:inherit}
 .panel{width:16.6667%;padding:20px 20px 12px;overflow-y:auto}
 
 h2.q{font-family:var(--font-display);font-size:1.5rem;line-height:1.2;color:var(--ubc-blue);margin:0 0 4px;font-weight:600}
+.panel h2:focus{outline:none}
 p.sub{margin:0 0 18px;font-size:.9rem;color:var(--muted)}
 fieldset{border:0;margin:0 0 18px;padding:0}
 legend{font-size:.86rem;color:var(--muted);margin-bottom:8px;padding:0}
@@ -280,7 +281,18 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <!-- ============ 4. receipt address ============ -->
       <section class="panel" id="p4" inert aria-labelledby="h4a">
         <h2 class="q" id="h4a">Where should we send your tax receipt?</h2>
-        <p class="sub">The Canada Revenue Agency requires an address on every official donation receipt.</p>
+        <p class="sub" id="receiptWhy">The Canada Revenue Agency requires an address on every official donation receipt.</p>
+
+        <div class="field" id="countryWrap" hidden>
+          <label for="country">Country</label>
+          <select id="country" autocomplete="country">
+            <option value="CA" selected>Canada</option>
+            <option value="US">United States</option>
+            <option value="GB">United Kingdom</option>
+            <option value="AU">Australia</option>
+            <option value="OTHER">Another country</option>
+          </select>
+        </div>
 
         <div class="field">
           <label for="addr1">Street address</label>
@@ -293,7 +305,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           <span class="err">Enter your city</span>
         </div>
         <div class="row">
-          <div class="field">
+          <div class="field" id="provCaWrap">
             <label for="prov">Province</label>
             <select id="prov" autocomplete="address-level1">
               <option value="BC" selected>British Columbia</option>
@@ -305,13 +317,17 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
               <option value="SK">Saskatchewan</option><option value="YT">Yukon</option>
             </select>
           </div>
+          <div class="field" id="provIntlWrap" hidden>
+            <label for="provIntl">State / region</label>
+            <input id="provIntl" autocapitalize="words">
+          </div>
           <div class="field">
-            <label for="pcode">Postal code</label>
-            <input id="pcode" autocomplete="postal-code" autocapitalize="characters" inputmode="text" maxlength="7" required>
+            <label for="pcode"><span id="pcodeLabel">Postal code</span></label>
+            <input id="pcode" autocomplete="postal-code" autocapitalize="characters" inputmode="text" maxlength="10" required>
             <span class="err">Enter a postal code</span>
           </div>
         </div>
-        <p class="hint">Giving from outside Canada? <button type="button" class="linkish">Change country</button></p>
+        <p class="hint">Giving from outside Canada? <button type="button" class="linkish" id="changeCountry">Change country</button></p>
       </section>
 
       <!-- ============ 5. payment ============ -->
@@ -349,16 +365,19 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <p id="doneLine"></p>
         <p class="sub">Your receipt is on its way by email.</p>
         <hr style="border:0;border-top:1px solid var(--rule);margin:24px 0">
-        <p class="sub" style="margin-bottom:12px">One last thing, if you have a moment.</p>
-        <fieldset>
-          <legend>What is your connection to UBC?</legend>
-          <div class="pills">
-            <button type="button" class="pill" aria-pressed="false">Alumni</button>
-            <button type="button" class="pill" aria-pressed="false">Faculty or staff</button>
-            <button type="button" class="pill" aria-pressed="false">Student</button>
-            <button type="button" class="pill" aria-pressed="false">Parent or friend</button>
-          </div>
-        </fieldset>
+        <div id="connectionBlock">
+          <p class="sub" style="margin-bottom:12px">One last thing, if you have a moment.</p>
+          <fieldset>
+            <legend>What is your connection to UBC?</legend>
+            <div class="pills">
+              <button type="button" class="pill" aria-pressed="false">Alumni</button>
+              <button type="button" class="pill" aria-pressed="false">Faculty or staff</button>
+              <button type="button" class="pill" aria-pressed="false">Student</button>
+              <button type="button" class="pill" aria-pressed="false">Parent or friend</button>
+            </div>
+          </fieldset>
+        </div>
+        <p class="sub" id="connectionThanks" hidden style="color:var(--ok)">Thank you, that helps us understand who we are reaching.</p>
       </section>
 
     </div>
@@ -416,7 +435,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   var step = 1, TOTAL = 5, PANELS = 6;
   var fills = {1:18, 2:38, 3:58, 4:78, 5:94, 6:100};
   var names = {1:"Your cause", 2:"Your gift", 3:"About you", 4:"Your receipt", 5:"Payment", 6:"Done"};
-  var state = { cause: null, causeOther: null, amount: 50, freq: "once", other: null };
+  var state = { cause: null, causeOther: null, amount: 50, freq: "once", other: null, country: "CA" };
 
   var track = document.getElementById('track');
   var barFill = document.getElementById('barFill');
@@ -453,6 +472,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
     back.hidden = (step === 1 || step > TOTAL);
     next.hidden = (step >= TOTAL);
+    next.textContent = (step === 2) ? 'Continue manually' : 'Continue';
     give.hidden = (step !== TOTAL);
     give.textContent = 'Give ' + label();
     document.getElementById('actions').style.display = (step > TOTAL) ? 'none' : 'flex';
@@ -586,7 +606,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     state.other = e.target.value.replace(/[^0-9.]/g,''); render();
   };
   document.querySelectorAll('#p6 .pill').forEach(function(b){
-    b.onclick = function(){ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); };
+    b.onclick = function(){
+      document.getElementById('connectionBlock').hidden = true;
+      document.getElementById('connectionThanks').hidden = false;
+    };
   });
 
   // wallets skip straight to confirmation
@@ -612,8 +635,32 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     e.target.value = e.target.value.replace(/\D/g,'').slice(0,4);
   };
   document.getElementById('pcode').oninput = function(e){
+    if (state.country !== 'CA') {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9 -]/g,'').slice(0,10);
+      return;
+    }
     var v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
     e.target.value = v.length > 3 ? v.slice(0,3) + ' ' + v.slice(3) : v;
+  };
+
+  // ---- country switch (tax receipt) ----
+  document.getElementById('changeCountry').onclick = function(){
+    document.getElementById('countryWrap').hidden = false;
+    document.getElementById('country').focus();
+  };
+  document.getElementById('country').onchange = function(e){
+    var ca = e.target.value === 'CA';
+    state.country = e.target.value;
+    document.getElementById('provCaWrap').hidden = !ca;
+    document.getElementById('provIntlWrap').hidden = ca;
+    document.getElementById('prov').disabled = !ca;
+    document.getElementById('provIntl').disabled = ca;
+    document.getElementById('pcodeLabel').textContent = ca ? 'Postal code' : 'Postal / ZIP code';
+    document.getElementById('receiptWhy').textContent = ca
+      ? 'The Canada Revenue Agency requires an address on every official donation receipt.'
+      : 'We print your address on the official donation receipt so it is valid for your records.';
+    document.getElementById('pcode').value = '';
+    document.getElementById('pcode').closest('.field').classList.remove('invalid');
   };
   document.querySelectorAll('input').forEach(function(el){
     el.addEventListener('input', function(){
