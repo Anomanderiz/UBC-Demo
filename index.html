@@ -81,6 +81,15 @@ legend{font-size:.86rem;color:var(--muted);margin-bottom:8px;padding:0}
 .cause-card h3{font-family:var(--font-display);color:var(--ubc-blue);margin:0 0 6px;font-size:1.08rem}
 .cause-card[hidden]{display:none}
 
+.matching{
+  background:#F4F6F8;border-left:4px solid var(--gold);
+  padding:14px 16px;margin-top:18px;text-align:left;
+  font-size:.86rem;color:var(--muted);line-height:1.5;
+}
+.matching h3{font-family:var(--font-display);color:var(--ubc-blue);margin:0 0 6px;font-size:1.05rem}
+.matching a{color:var(--ubc-blue-mid)}
+#postConnection[hidden]{display:none}
+
 /* ---------- pills ---------- */
 .pills{display:flex;gap:8px;flex-wrap:wrap}
 .pill{
@@ -167,6 +176,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .sheet .close{width:100%;min-height:48px;border-radius:24px;border:2px solid var(--ubc-blue);background:#fff;color:var(--ubc-blue);cursor:pointer}
 
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
 
 @media (prefers-reduced-motion:reduce){
   .track,.bar-fill{transition:none}
@@ -377,7 +388,13 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
             </div>
           </fieldset>
         </div>
-        <p class="sub" id="connectionThanks" hidden style="color:var(--ok)">Thank you, that helps us understand who we are reaching.</p>
+        <div id="postConnection" hidden>
+          <p class="sub" style="color:var(--ok)">Thank you, that helps us understand who we are reaching.</p>
+          <div class="matching">
+            <h3>Double your impact!</h3>
+            <p style="margin:0">If you work for a company that matches employee donations, please remember to complete and mail your company's matching gift form to UBC. If you are not aware of this opportunity, <a href="#">please consult the current list of participating companies</a>.</p>
+          </div>
+        </div>
       </section>
 
     </div>
@@ -432,7 +449,66 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     }
   };
 
-  var step = 1, TOTAL = 5, PANELS = 6;
+  var step = 1, TOTAL = 5, PANELS = 6, celebrated = false;
+
+  function celebrate(){
+    if (celebrated) return;
+    celebrated = true;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var cv = document.createElement('canvas');
+    cv.id = 'confetti';
+    document.body.appendChild(cv);
+    var ctx = cv.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var W, H;
+    function size(){ W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; }
+    size();
+
+    var colors = ['#002145','#0055B7','#EFA00F','#C97F00','#1E7A4B','#ffffff'];
+    var parts = [];
+    var cx = W / 2, cy = H * 0.28;
+    for (var i = 0; i < 140; i++){
+      var ang = Math.PI * (0.15 + Math.random() * 0.7);   // fan upward/outward
+      var sp = (7 + Math.random() * 9) * dpr;
+      parts.push({
+        x: cx + (Math.random() - 0.5) * 40 * dpr,
+        y: cy + (Math.random() - 0.5) * 20 * dpr,
+        vx: Math.cos(ang) * sp * (Math.random() < 0.5 ? -1 : 1),
+        vy: -Math.sin(ang) * sp,
+        w: (5 + Math.random() * 6) * dpr,
+        h: (8 + Math.random() * 8) * dpr,
+        rot: Math.random() * Math.PI,
+        vr: (Math.random() - 0.5) * 0.3,
+        color: colors[i % colors.length]
+      });
+    }
+
+    var start = performance.now();
+    function frame(now){
+      var t = now - start;
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < parts.length; i++){
+        var p = parts[i];
+        p.vy += 0.35 * dpr;      // gravity
+        p.vx *= 0.99;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.max(0, 1 - t / 2600);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      }
+      if (t < 2800) requestAnimationFrame(frame);
+      else cv.remove();
+    }
+    requestAnimationFrame(frame);
+  }
+
   var fills = {1:18, 2:38, 3:58, 4:78, 5:94, 6:100};
   var names = {1:"Your cause", 2:"Your gift", 3:"About you", 4:"Your receipt", 5:"Payment", 6:"Done"};
   var state = { cause: null, causeOther: null, amount: 50, freq: "once", other: null, country: "CA" };
@@ -495,6 +571,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     var h = panels[step].querySelector('h2');
     if (h) { h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); }
     panels[step].scrollTop = 0;
+
+    if (step === 6) setTimeout(celebrate, 260);
   }
 
   function validate(n){
@@ -608,7 +686,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   document.querySelectorAll('#p6 .pill').forEach(function(b){
     b.onclick = function(){
       document.getElementById('connectionBlock').hidden = true;
-      document.getElementById('connectionThanks').hidden = false;
+      document.getElementById('postConnection').hidden = false;
     };
   });
 
