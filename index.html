@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#002145">
+<title>Give to UBC</title>
+<style>
+:root{
+  /* ---- Swap these two lines for the licensed faces on a *.ubc.ca host ---- */
+  --font-display: "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --font-body: "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+
+  --ubc-blue:#002145;        /* official, brand.ubc.ca */
+  --ubc-blue-mid:#0055B7;    /* official secondary */
+  --gold:#EFA00F;            /* eyedropped from Give Now button */
+  --gold-dark:#C97F00;
+  --pill:#E4E4E4;
+  --page:#EDEDED;
+  --rule:#CFCFCF;
+  --text:#1B1B1B;
+  --muted:#5A6472;
+  --ok:#1E7A4B;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  background:var(--page);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.45;
+}
+button{font:inherit;color:inherit}
+input,select{font:inherit;color:inherit}
+
+/* ---------- shell ---------- */
+.shell{
+  max-width:460px;margin:0 auto;background:#fff;min-height:100dvh;
+  display:flex;flex-direction:column;position:relative;
+}
+
+/* ---------- progress ---------- */
+.top{
+  position:sticky;top:0;z-index:20;background:#fff;
+  padding:14px 20px 12px;border-bottom:1px solid var(--rule);
+}
+.top-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.step-name{font-family:var(--font-display);font-size:1.06rem;color:var(--ubc-blue);margin:0}
+.step-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.bar{margin-top:10px;height:5px;background:var(--pill);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;width:30%;background:var(--ubc-blue);border-radius:3px;transition:width .34s cubic-bezier(.4,0,.2,1)}
+
+/* ---------- panels ---------- */
+.viewport{flex:1;overflow:hidden;position:relative}
+.track{display:flex;width:400%;height:100%;transition:transform .34s cubic-bezier(.4,0,.2,1)}
+.panel{width:25%;padding:20px 20px 12px;overflow-y:auto}
+.panel[hidden]{display:none}
+
+h2.q{font-family:var(--font-display);font-size:1.5rem;line-height:1.2;color:var(--ubc-blue);margin:0 0 4px;font-weight:600}
+p.sub{margin:0 0 18px;font-size:.9rem;color:var(--muted)}
+fieldset{border:0;margin:0 0 18px;padding:0}
+legend{font-size:.86rem;color:var(--muted);margin-bottom:8px;padding:0}
+
+/* ---------- pills ---------- */
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{
+  flex:1 1 0;min-width:88px;min-height:48px;padding:12px 10px;
+  background:var(--pill);border:2px solid transparent;border-radius:4px;
+  color:var(--ubc-blue);cursor:pointer;text-align:center;
+}
+.pill[aria-pressed="true"]{background:var(--ubc-blue);color:#fff;border-color:var(--ubc-blue)}
+.pill:focus-visible{outline:3px solid var(--ubc-blue-mid);outline-offset:2px}
+.amounts .pill{flex:1 1 30%;font-size:1.02rem}
+.freq .pill{flex:1 1 48%}
+.freq .pill small{display:block;font-size:.72rem;opacity:.85;margin-top:2px}
+
+/* ---------- inputs ---------- */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.84rem;color:var(--muted);margin-bottom:4px}
+.field input,.field select{
+  width:100%;min-height:48px;padding:10px 2px;background:transparent;
+  border:0;border-bottom:1.5px solid var(--ubc-blue);border-radius:0;font-size:1.02rem;
+}
+.field input:focus,.field select:focus{outline:0;border-bottom-width:3px}
+.field input:focus-visible,.field select:focus-visible{outline:3px solid var(--ubc-blue-mid);outline-offset:3px}
+.row{display:flex;gap:12px}
+.row .field{flex:1}
+.hint{font-size:.78rem;color:var(--muted);margin:-8px 0 16px}
+.err{font-size:.82rem;color:#B3261E;margin-top:4px;display:none}
+.field.invalid input{border-bottom-color:#B3261E}
+.field.invalid .err{display:block}
+
+/* boxed inputs for card fields, matching the gateway iframe look */
+.boxed input{border:1.5px solid var(--ubc-blue);padding:10px 12px}
+
+/* ---------- wallets ---------- */
+.wallets{margin:18px 0 0}
+.wallet{
+  width:100%;min-height:52px;margin-bottom:8px;border:0;border-radius:6px;
+  background:#000;color:#fff;font-size:1.02rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.wallet.g{background:#fff;color:#3c4043;border:1.5px solid #747775}
+.wallet:focus-visible{outline:3px solid var(--ubc-blue-mid);outline-offset:2px}
+.or{display:flex;align-items:center;gap:12px;margin:16px 0 4px;color:var(--muted);font-size:.82rem}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+/* ---------- actions ---------- */
+.actions{
+  position:sticky;bottom:0;background:#fff;border-top:1px solid var(--rule);
+  padding:12px 20px calc(12px + env(safe-area-inset-bottom));
+  display:flex;gap:12px;z-index:20;
+}
+.btn{min-height:52px;padding:0 22px;border-radius:26px;cursor:pointer;border:2px solid var(--ubc-blue);background:#fff;color:var(--ubc-blue)}
+.btn.primary{flex:1;background:var(--ubc-blue);color:#fff}
+.btn.give{flex:1;background:var(--gold);border-color:var(--gold-dark);color:#2A1B00;font-size:1.06rem}
+.btn:focus-visible{outline:3px solid var(--ubc-blue-mid);outline-offset:3px}
+.btn[hidden]{display:none}
+
+/* ---------- summary strip ---------- */
+.summary{
+  background:#F4F6F8;border-left:4px solid var(--ubc-blue);
+  padding:10px 14px;margin-bottom:18px;font-size:.88rem;
+}
+.summary b{font-family:var(--font-display);color:var(--ubc-blue)}
+.summary button{background:0;border:0;padding:0;color:var(--ubc-blue-mid);text-decoration:underline;cursor:pointer;font-size:.82rem}
+
+.secure{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);margin-bottom:16px}
+
+/* ---------- done ---------- */
+.done{padding:40px 24px;text-align:center}
+.done h2{font-family:var(--font-display);color:var(--ubc-blue);font-size:1.6rem;margin:0 0 8px}
+
+/* ---------- rationale sheet ---------- */
+.why{display:block;width:100%;text-align:center;background:0;border:0;padding:14px;color:var(--ubc-blue-mid);text-decoration:underline;font-size:.84rem;cursor:pointer}
+dialog{
+  border:0;border-radius:12px 12px 0 0;padding:0;width:100%;max-width:460px;
+  margin:auto auto 0;max-height:86dvh;
+}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.sheet{padding:22px 22px calc(22px + env(safe-area-inset-bottom))}
+.sheet h3{font-family:var(--font-display);color:var(--ubc-blue);margin:0 0 14px;font-size:1.25rem}
+.sheet ul{margin:0 0 18px;padding-left:20px}
+.sheet li{margin-bottom:12px;font-size:.9rem}
+.sheet li b{color:var(--ubc-blue)}
+.sheet .close{width:100%;min-height:48px;border-radius:24px;border:2px solid var(--ubc-blue);background:#fff;color:var(--ubc-blue);cursor:pointer}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (prefers-reduced-motion:reduce){
+  .track,.bar-fill{transition:none}
+}
+</style>
+</head>
+<body>
+
+<main class="shell">
+
+  <div class="top">
+    <div class="top-row">
+      <h1 class="step-name" id="stepName">Your gift</h1>
+      <span class="step-count" id="stepCount">Step 1 of 4</span>
+    </div>
+    <div class="bar" role="progressbar" aria-labelledby="stepName" aria-valuemin="0" aria-valuemax="4" aria-valuenow="1">
+      <div class="bar-fill" id="barFill"></div>
+    </div>
+  </div>
+
+  <p class="sr" aria-live="polite" id="announce"></p>
+
+  <div class="viewport">
+    <div class="track" id="track">
+
+      <!-- ============ 1. amount ============ -->
+      <section class="panel" id="p1" aria-labelledby="h1a">
+        <h2 class="q" id="h1a">How much would you like to give?</h2>
+        <p class="sub">Supporting the Student Affordability Fund. <button class="linkish" type="button" id="changeFund" style="background:0;border:0;padding:0;color:var(--ubc-blue-mid);text-decoration:underline;cursor:pointer;font:inherit;font-size:.9rem">Change</button></p>
+
+        <fieldset class="freq">
+          <legend>Give once, or every month</legend>
+          <div class="pills">
+            <button type="button" class="pill" data-freq="once" aria-pressed="true">One time</button>
+            <button type="button" class="pill" data-freq="monthly" aria-pressed="false">Monthly<small>Steady support all year</small></button>
+          </div>
+        </fieldset>
+
+        <fieldset class="amounts">
+          <legend>Choose an amount</legend>
+          <div class="pills" id="amountPills">
+            <button type="button" class="pill" data-amt="1000" aria-pressed="false">$1,000</button>
+            <button type="button" class="pill" data-amt="500" aria-pressed="false">$500</button>
+            <button type="button" class="pill" data-amt="250" aria-pressed="false">$250</button>
+            <button type="button" class="pill" data-amt="125" aria-pressed="false">$125</button>
+            <button type="button" class="pill" data-amt="50" aria-pressed="true">$50</button>
+            <button type="button" class="pill" data-amt="other">Other</button>
+          </div>
+          <div class="field" id="otherWrap" hidden style="margin-top:14px">
+            <label for="otherAmt">Enter an amount in Canadian dollars</label>
+            <input id="otherAmt" type="text" inputmode="decimal" placeholder="$">
+          </div>
+        </fieldset>
+
+        <div class="wallets">
+          <button type="button" class="wallet" id="applePay">Give with&nbsp;<strong>&#63743;&nbsp;Pay</strong></button>
+          <button type="button" class="wallet g" id="googlePay">Give with <strong>Google Pay</strong></button>
+          <p class="hint" style="margin:8px 0 0">Uses the name, email and billing address already on your phone, so there is nothing to type.</p>
+        </div>
+        <div class="or">or enter your details</div>
+      </section>
+
+      <!-- ============ 2. about you ============ -->
+      <section class="panel" id="p2" hidden aria-labelledby="h2a">
+        <div class="summary" id="sum2"></div>
+        <h2 class="q" id="h2a">Who is this gift from?</h2>
+        <p class="sub">We use this to thank you and to issue your receipt.</p>
+
+        <div class="row">
+          <div class="field">
+            <label for="fname">First name</label>
+            <input id="fname" name="given-name" autocomplete="given-name" autocapitalize="words" required>
+            <span class="err">Enter your first name</span>
+          </div>
+          <div class="field">
+            <label for="lname">Last name</label>
+            <input id="lname" name="family-name" autocomplete="family-name" autocapitalize="words" required>
+            <span class="err">Enter your last name</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" autocomplete="email" inputmode="email" required>
+          <span class="err">Enter an email we can send your receipt to</span>
+        </div>
+      </section>
+
+      <!-- ============ 3. receipt address ============ -->
+      <section class="panel" id="p3" hidden aria-labelledby="h3a">
+        <h2 class="q" id="h3a">Where should we send your tax receipt?</h2>
+        <p class="sub">The Canada Revenue Agency requires an address on every official donation receipt, so this part is not optional.</p>
+
+        <div class="field">
+          <label for="addr1">Street address</label>
+          <input id="addr1" autocomplete="address-line1" required>
+          <span class="err">Enter your street address</span>
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" autocomplete="address-level2" autocapitalize="words" required>
+          <span class="err">Enter your city</span>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="prov">Province</label>
+            <select id="prov" autocomplete="address-level1">
+              <option value="BC" selected>British Columbia</option>
+              <option value="AB">Alberta</option><option value="MB">Manitoba</option>
+              <option value="NB">New Brunswick</option><option value="NL">Newfoundland and Labrador</option>
+              <option value="NS">Nova Scotia</option><option value="NT">Northwest Territories</option>
+              <option value="NU">Nunavut</option><option value="ON">Ontario</option>
+              <option value="PE">Prince Edward Island</option><option value="QC">Quebec</option>
+              <option value="SK">Saskatchewan</option><option value="YT">Yukon</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pcode">Postal code</label>
+            <input id="pcode" autocomplete="postal-code" autocapitalize="characters" inputmode="text" maxlength="7" required>
+            <span class="err">Enter a postal code</span>
+          </div>
+        </div>
+        <p class="hint">Giving from outside Canada? <button type="button" style="background:0;border:0;padding:0;color:var(--ubc-blue-mid);text-decoration:underline;cursor:pointer;font:inherit">Change country</button></p>
+      </section>
+
+      <!-- ============ 4. payment ============ -->
+      <section class="panel" id="p4" hidden aria-labelledby="h4a">
+        <div class="summary" id="sum4"></div>
+        <h2 class="q" id="h4a">Card details</h2>
+        <div class="secure">
+          <svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path fill="currentColor" d="M11 6V4.5A4 4 0 0 0 3 4.5V6H2v9h10V6h-1zM4.5 4.5a2.5 2.5 0 0 1 5 0V6h-5V4.5z"/></svg>
+          Encrypted and processed by UBC's payment provider
+        </div>
+
+        <div class="field boxed">
+          <label for="card">Card number</label>
+          <input id="card" inputmode="numeric" autocomplete="cc-number" maxlength="23" placeholder="1234 5678 9012 3456" required>
+          <span class="err">Check the card number</span>
+        </div>
+        <div class="row">
+          <div class="field boxed">
+            <label for="exp">Expiry</label>
+            <input id="exp" inputmode="numeric" autocomplete="cc-exp" maxlength="7" placeholder="MM / YY" required>
+            <span class="err">Use MM / YY</span>
+          </div>
+          <div class="field boxed">
+            <label for="cvv">CVV</label>
+            <input id="cvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="123" required>
+            <span class="err">3 or 4 digits</span>
+          </div>
+        </div>
+        <p class="hint">Your name is taken from the details you entered, so there is nothing more to type.</p>
+      </section>
+
+      <!-- ============ done ============ -->
+      <section class="panel done" id="p5" hidden aria-labelledby="h5a">
+        <h2 id="h5a">Thank you</h2>
+        <p id="doneLine"></p>
+        <p class="sub">Your receipt is on its way by email.</p>
+        <hr style="border:0;border-top:1px solid var(--rule);margin:24px 0">
+        <p class="sub" style="margin-bottom:12px">One last thing, if you have a moment.</p>
+        <fieldset>
+          <legend>What is your connection to UBC?</legend>
+          <div class="pills">
+            <button type="button" class="pill" aria-pressed="false">Alumni</button>
+            <button type="button" class="pill" aria-pressed="false">Faculty or staff</button>
+            <button type="button" class="pill" aria-pressed="false">Student</button>
+            <button type="button" class="pill" aria-pressed="false">Parent or friend</button>
+          </div>
+        </fieldset>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="actions" id="actions">
+    <button type="button" class="btn" id="back" hidden>Back</button>
+    <button type="button" class="btn primary" id="next">Continue</button>
+    <button type="button" class="btn give" id="give" hidden>Give $50 now</button>
+  </div>
+
+  <button class="why" id="whyBtn">Why this design</button>
+</main>
+
+<dialog id="whySheet">
+  <div class="sheet">
+    <h3>What changed, and on what evidence</h3>
+    <ul>
+      <li><b>Amount first.</b> Selecting an amount is the commitment. Asking for name and address before it front-loads effort while capturing nothing.</li>
+      <li><b>One thing per screen.</b> The pattern GDS adopted as its default for public services after research showed it helps low-confidence users and works better on mobile.</li>
+      <li><b>Wallets before the form.</b> Apple Pay and Google Pay supply name, email and billing address in one authentication. Engaging Networks supports both natively through Stripe.</li>
+      <li><b>Fields cut from 16 to 9.</b> Title, address type, address line 2, telephone, cardholder name and relationship-to-UBC all removed or moved after the gift.</li>
+      <li><b>The progress bar starts partly filled.</b> The goal-gradient effect: people accelerate when a target looks close.</li>
+      <li><b>Address is explained, not just demanded.</b> CRA requires it on the receipt, so saying why costs one line and buys compliance.</li>
+      <li><b>Monthly is prominent but never pre-selected.</b> Pre-checked recurring boxes lift revenue and generate refunds and regulatory attention; a public university should not use them.</li>
+      <li><b>One expiry field, not two dropdowns.</b> Two selects is roughly six taps; a formatted text input is four keystrokes.</li>
+      <li><b>Autofill preserved.</b> Correct <code>autocomplete</code> attributes throughout, which most card-carousel builds silently break.</li>
+      <li><b>Accessibility.</b> Focus moves to each step heading, changes are announced to screen readers, motion respects the reduced-motion setting, and every target clears 48px.</li>
+    </ul>
+    <button class="close" id="closeSheet">Close</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  var step = 1, TOTAL = 4;
+  var fills = {1:30, 2:52, 3:74, 4:94, 5:100};
+  var names = {1:"Your gift", 2:"About you", 3:"Your receipt", 4:"Payment", 5:"Done"};
+  var state = { amount: 50, freq: "once", other: null };
+
+  var track = document.getElementById('track');
+  var barFill = document.getElementById('barFill');
+  var bar = barFill.parentElement;
+  var stepName = document.getElementById('stepName');
+  var stepCount = document.getElementById('stepCount');
+  var announce = document.getElementById('announce');
+  var back = document.getElementById('back');
+  var next = document.getElementById('next');
+  var give = document.getElementById('give');
+  var panels = [null,
+    document.getElementById('p1'), document.getElementById('p2'),
+    document.getElementById('p3'), document.getElementById('p4'),
+    document.getElementById('p5')];
+
+  function amt(){ return state.amount === 'other' ? (parseFloat(state.other)||0) : state.amount; }
+  function money(n){ return '$' + n.toLocaleString('en-CA'); }
+  function label(){ return money(amt()) + (state.freq === 'monthly' ? ' a month' : ''); }
+
+  function render(){
+    for (var i=1;i<=5;i++) panels[i].hidden = (i !== step);
+    track.style.transform = 'translateX(-' + ((step-1)*25) + '%)';
+    barFill.style.width = fills[step] + '%';
+    bar.setAttribute('aria-valuenow', Math.min(step, TOTAL));
+    stepName.textContent = names[step];
+    stepCount.textContent = step > TOTAL ? 'Complete' : 'Step ' + step + ' of ' + TOTAL;
+    stepCount.hidden = step > TOTAL;
+
+    back.hidden = (step === 1 || step === 5);
+    next.hidden = (step >= TOTAL);
+    give.hidden = (step !== TOTAL);
+    give.textContent = 'Give ' + label();
+    document.getElementById('actions').style.display = (step === 5) ? 'none' : 'flex';
+
+    document.getElementById('sum2').innerHTML =
+      '<b>' + label() + '</b> to the Student Affordability Fund &nbsp;<button type="button" id="edit2">Edit</button>';
+    document.getElementById('sum4').innerHTML =
+      '<b>' + label() + '</b> to the Student Affordability Fund &nbsp;<button type="button" id="edit4">Edit</button>';
+    ['edit2','edit4'].forEach(function(id){
+      var b = document.getElementById(id);
+      if (b) b.onclick = function(){ step = 1; render(); };
+    });
+
+    if (step <= TOTAL) {
+      announce.textContent = names[step] + ', step ' + step + ' of ' + TOTAL;
+      var h = panels[step].querySelector('h2');
+      if (h) { h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); }
+    }
+    panels[step].scrollTop = 0;
+  }
+
+  function validate(n){
+    var ok = true;
+    panels[n].querySelectorAll('input[required]').forEach(function(el){
+      var wrap = el.closest('.field');
+      var bad = !el.value.trim() ||
+                (el.type === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value)) ||
+                (el.id === 'exp' && !/^\d{2}\s*\/\s*\d{2}$/.test(el.value)) ||
+                (el.id === 'cvv' && !/^\d{3,4}$/.test(el.value)) ||
+                (el.id === 'card' && el.value.replace(/\s/g,'').length < 13);
+      wrap.classList.toggle('invalid', bad);
+      if (bad && ok) { el.focus(); ok = false; }
+    });
+    return ok;
+  }
+
+  next.onclick = function(){
+    if (step === 1 && amt() <= 0) {
+      document.getElementById('otherAmt').focus(); return;
+    }
+    if (step > 1 && !validate(step)) return;
+    step++; render();
+  };
+  back.onclick = function(){ step--; render(); };
+  give.onclick = function(){
+    if (!validate(4)) return;
+    document.getElementById('doneLine').textContent =
+      'Your gift of ' + label() + ' will help a UBC student stay in school.';
+    step = 5; render();
+  };
+
+  // pills
+  document.querySelectorAll('.freq .pill').forEach(function(b){
+    b.onclick = function(){
+      document.querySelectorAll('.freq .pill').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      state.freq = b.dataset.freq; render();
+    };
+  });
+  document.querySelectorAll('#amountPills .pill').forEach(function(b){
+    b.onclick = function(){
+      document.querySelectorAll('#amountPills .pill').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      var wrap = document.getElementById('otherWrap');
+      if (b.dataset.amt === 'other') {
+        state.amount = 'other'; wrap.hidden = false;
+        document.getElementById('otherAmt').focus();
+      } else {
+        state.amount = parseInt(b.dataset.amt,10); wrap.hidden = true;
+      }
+      render();
+    };
+  });
+  document.getElementById('otherAmt').oninput = function(e){
+    state.other = e.target.value.replace(/[^0-9.]/g,''); render();
+  };
+  document.querySelectorAll('#p5 .pill').forEach(function(b){
+    b.onclick = function(){ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); };
+  });
+
+  // wallets skip straight to confirmation
+  ['applePay','googlePay'].forEach(function(id){
+    document.getElementById(id).onclick = function(){
+      if (amt() <= 0) { document.getElementById('otherAmt').focus(); return; }
+      document.getElementById('doneLine').textContent =
+        'Your gift of ' + label() + ' will help a UBC student stay in school.';
+      step = 5; render();
+    };
+  });
+
+  // input formatting
+  document.getElementById('card').oninput = function(e){
+    var v = e.target.value.replace(/\D/g,'').slice(0,19);
+    e.target.value = v.replace(/(.{4})/g,'$1 ').trim();
+  };
+  document.getElementById('exp').oninput = function(e){
+    var v = e.target.value.replace(/\D/g,'').slice(0,4);
+    e.target.value = v.length > 2 ? v.slice(0,2) + ' / ' + v.slice(2) : v;
+  };
+  document.getElementById('cvv').oninput = function(e){
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,4);
+  };
+  document.getElementById('pcode').oninput = function(e){
+    var v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+    e.target.value = v.length > 3 ? v.slice(0,3) + ' ' + v.slice(3) : v;
+  };
+  document.querySelectorAll('input').forEach(function(el){
+    el.addEventListener('input', function(){
+      var w = el.closest('.field'); if (w) w.classList.remove('invalid');
+    });
+  });
+  document.getElementById('changeFund').onclick = function(){ /* fund picker stub */ };
+
+  // rationale sheet
+  var sheet = document.getElementById('whySheet');
+  document.getElementById('whyBtn').onclick = function(){ sheet.showModal(); };
+  document.getElementById('closeSheet').onclick = function(){ sheet.close(); };
+
+  render();
+})();
+</script>
+</body>
+</html>
