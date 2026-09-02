@@ -280,7 +280,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <!-- ============ 4. receipt address ============ -->
       <section class="panel" id="p4" inert aria-labelledby="h4a">
         <h2 class="q" id="h4a">Where should we send your tax receipt?</h2>
-        <p class="sub">The Canada Revenue Agency requires an address on every official donation receipt, so this part is not optional.</p>
+        <p class="sub">The Canada Revenue Agency requires an address on every official donation receipt.</p>
 
         <div class="field">
           <label for="addr1">Street address</label>
@@ -377,16 +377,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <div class="sheet">
     <h3>What changed, and on what evidence</h3>
     <ul>
-      <li><b>Cause, then amount, then you.</b> The donor picks what they care about and commits to a sum before being asked for name and address. Front-loading personal fields captures effort while capturing nothing.</li>
+      <li><b>Explain the funds.</b> The purpose of each fund is clearly explained using blurbs extracted from UBC pages.</li>
       <li><b>One thing per screen.</b> The pattern GDS adopted as its default for public services after research showed it helps low-confidence users and works better on mobile.</li>
       <li><b>Wallets before the form.</b> Apple Pay and Google Pay supply name, email and billing address in one authentication. Engaging Networks supports both natively through Stripe.</li>
       <li><b>Fields cut from 16 to 9.</b> Title, address type, address line 2, telephone, cardholder name and relationship-to-UBC all removed or moved after the gift.</li>
       <li><b>The progress bar starts partly filled.</b> The goal-gradient effect: people accelerate when a target looks close.</li>
-      <li><b>Address is explained, not just demanded.</b> CRA requires it on the receipt, so saying why costs one line and buys compliance.</li>
-      <li><b>Monthly is prominent but never pre-selected.</b> Pre-checked recurring boxes lift revenue and generate refunds and regulatory attention; a public university should not use them.</li>
+      <li><b>Need for an address is explained.</b> CRA requires it on the receipt, and explaining it reduces resistance.</li>
+      <li><b>Monthly is prominent but never pre-selected.</b> Pre-checked recurring boxes increase revenue but generate refunds and regulatory attention.</li>
       <li><b>One expiry field, not two dropdowns.</b> Two selects is roughly six taps; a formatted text input is four keystrokes.</li>
-      <li><b>Autofill preserved.</b> Correct <code>autocomplete</code> attributes throughout, which most card-carousel builds silently break.</li>
-      <li><b>Accessibility.</b> Focus moves to each step heading, changes are announced to screen readers, motion respects the reduced-motion setting, and every target clears 48px.</li>
+      <li><b>Autofill preserved.</b> Correct <code>autocomplete</code> attributes are used throughout.</li>
+      <li><b>Accessibility.</b> Focus moves to each step heading, changes are announced to screen readers, motion respects the reduced-motion setting, and every selection is at least 48px.</li>
     </ul>
     <button class="close" id="closeSheet">Close</button>
   </div>
