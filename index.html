@@ -123,6 +123,12 @@ legend{font-size:.86rem;color:var(--muted);margin-bottom:8px;padding:0}
 /* boxed inputs for card fields, matching the gateway iframe look */
 .boxed input{border:1.5px solid var(--ubc-blue);padding:10px 12px}
 
+/* checkbox row */
+.check{display:flex;align-items:center;gap:10px;margin:-6px 0 18px;min-height:44px}
+.check input{width:22px;height:22px;min-height:0;flex:0 0 auto;accent-color:var(--ubc-blue)}
+.check input:focus-visible{outline:3px solid var(--ubc-blue-mid);outline-offset:3px}
+.check label{margin:0;font-size:.92rem;color:var(--text);cursor:pointer}
+
 /* ---------- wallets ---------- */
 .wallets{margin:18px 0 0}
 .wallet{
@@ -176,8 +182,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .sheet .close{width:100%;min-height:48px;border-radius:24px;border:2px solid var(--ubc-blue);background:#fff;color:var(--ubc-blue);cursor:pointer}
 
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-
-#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
 
 @media (prefers-reduced-motion:reduce){
   .track,.bar-fill{transition:none}
@@ -259,7 +263,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <div class="wallets">
           <button type="button" class="wallet" id="applePay">Give with&nbsp;<strong>&#63743;&nbsp;Pay</strong></button>
           <button type="button" class="wallet g" id="googlePay">Give with <strong>Google Pay</strong></button>
-          <p class="hint" style="margin:8px 0 0">Uses the name, email and billing address already on your phone, so there is nothing to type.</p>
+          <p class="hint" style="margin:8px 0 0">E-payment options use the email and address already assigned to them. To receive a receipt to an alternate address, please email: support.ubc.ca</p>
         </div>
         <div class="or">or enter your details</div>
       </section>
@@ -281,6 +285,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
             <input id="lname" name="family-name" autocomplete="family-name" autocapitalize="words" required>
             <span class="err">Enter your last name</span>
           </div>
+        </div>
+        <div class="check">
+          <input id="sameAsBilling" type="checkbox" checked>
+          <label for="sameAsBilling">Same as billing information</label>
         </div>
         <div class="field">
           <label for="email">Email</label>
@@ -350,6 +358,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           Encrypted and processed by UBC's payment provider
         </div>
 
+        <div class="field boxed" id="cardNameWrap" hidden>
+          <label for="cardName">Name on card</label>
+          <input id="cardName" autocomplete="cc-name" autocapitalize="words" placeholder="As it appears on the card">
+          <span class="err">Enter the name on the card</span>
+        </div>
         <div class="field boxed">
           <label for="card">Card number</label>
           <input id="card" inputmode="numeric" autocomplete="cc-number" maxlength="23" placeholder="1234 5678 9012 3456" required>
@@ -367,7 +380,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
             <span class="err">3 or 4 digits</span>
           </div>
         </div>
-        <p class="hint">Your name is taken from the details you entered, so there is nothing more to type.</p>
       </section>
 
       <!-- ============ done ============ -->
@@ -411,17 +423,17 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
 <dialog id="whySheet">
   <div class="sheet">
-    <h3>What changed, and on what evidence</h3>
+    <h3>What changed:</h3>
     <ul>
       <li><b>Explain the funds.</b> The purpose of each fund is clearly explained using blurbs extracted from UBC pages.</li>
-      <li><b>One thing per screen.</b> The pattern GDS adopted as its default for public services after research showed it helps low-confidence users and works better on mobile.</li>
+      <li><b>One element per screen.</b> The pattern GDS adopted as its default for public services after research showed it helps low-confidence users and works better on mobile.</li>
       <li><b>Wallets before the form.</b> Apple Pay and Google Pay supply name, email and billing address in one authentication. Engaging Networks supports both natively through Stripe.</li>
       <li><b>Fields cut from 16 to 9.</b> Title, address type, address line 2, telephone, cardholder name and relationship-to-UBC all removed or moved after the gift.</li>
       <li><b>The progress bar starts partly filled.</b> The goal-gradient effect: people accelerate when a target looks close.</li>
       <li><b>Need for an address is explained.</b> CRA requires it on the receipt, and explaining it reduces resistance.</li>
       <li><b>Monthly is prominent but never pre-selected.</b> Pre-checked recurring boxes increase revenue but generate refunds and regulatory attention.</li>
       <li><b>One expiry field, not two dropdowns.</b> Two selects is roughly six taps; a formatted text input is four keystrokes.</li>
-      <li><b>Autofill preserved.</b> Correct <code>autocomplete</code> attributes are used throughout.</li>
+      <li><b>Autofill preserved.</b> Correct autocomplete attributes are used throughout to support autofill.</li>
       <li><b>Accessibility.</b> Focus moves to each step heading, changes are announced to screen readers, motion respects the reduced-motion setting, and every selection is at least 48px.</li>
     </ul>
     <button class="close" id="closeSheet">Close</button>
@@ -449,65 +461,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     }
   };
 
-  var step = 1, TOTAL = 5, PANELS = 6, celebrated = false;
-
-  function celebrate(){
-    if (celebrated) return;
-    celebrated = true;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    var cv = document.createElement('canvas');
-    cv.id = 'confetti';
-    document.body.appendChild(cv);
-    var ctx = cv.getContext('2d');
-    var dpr = window.devicePixelRatio || 1;
-    var W, H;
-    function size(){ W = cv.width = innerWidth * dpr; H = cv.height = innerHeight * dpr; }
-    size();
-
-    var colors = ['#002145','#0055B7','#EFA00F','#C97F00','#1E7A4B','#ffffff'];
-    var parts = [];
-    var cx = W / 2, cy = H * 0.28;
-    for (var i = 0; i < 140; i++){
-      var ang = Math.PI * (0.15 + Math.random() * 0.7);   // fan upward/outward
-      var sp = (7 + Math.random() * 9) * dpr;
-      parts.push({
-        x: cx + (Math.random() - 0.5) * 40 * dpr,
-        y: cy + (Math.random() - 0.5) * 20 * dpr,
-        vx: Math.cos(ang) * sp * (Math.random() < 0.5 ? -1 : 1),
-        vy: -Math.sin(ang) * sp,
-        w: (5 + Math.random() * 6) * dpr,
-        h: (8 + Math.random() * 8) * dpr,
-        rot: Math.random() * Math.PI,
-        vr: (Math.random() - 0.5) * 0.3,
-        color: colors[i % colors.length]
-      });
-    }
-
-    var start = performance.now();
-    function frame(now){
-      var t = now - start;
-      ctx.clearRect(0, 0, W, H);
-      for (var i = 0; i < parts.length; i++){
-        var p = parts[i];
-        p.vy += 0.35 * dpr;      // gravity
-        p.vx *= 0.99;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.rot += p.vr;
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.globalAlpha = Math.max(0, 1 - t / 2600);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-        ctx.restore();
-      }
-      if (t < 2800) requestAnimationFrame(frame);
-      else cv.remove();
-    }
-    requestAnimationFrame(frame);
-  }
+  var step = 1, TOTAL = 5, PANELS = 6;
 
   var fills = {1:18, 2:38, 3:58, 4:78, 5:94, 6:100};
   var names = {1:"Your cause", 2:"Your gift", 3:"About you", 4:"Your receipt", 5:"Payment", 6:"Done"};
@@ -571,8 +525,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     var h = panels[step].querySelector('h2');
     if (h) { h.setAttribute('tabindex','-1'); h.focus({preventScroll:true}); }
     panels[step].scrollTop = 0;
-
-    if (step === 6) setTimeout(celebrate, 260);
   }
 
   function validate(n){
@@ -746,6 +698,24 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     });
   });
   document.getElementById('changeFund').onclick = function(){ step = 1; render(); };
+
+  // ---- name on card (only asked for when it differs from the billing name) ----
+  var sameAsBilling = document.getElementById('sameAsBilling');
+  var cardNameWrap = document.getElementById('cardNameWrap');
+  var cardName = document.getElementById('cardName');
+  function syncCardName(){
+    var same = sameAsBilling.checked;
+    cardNameWrap.hidden = same;
+    if (same) {
+      cardName.removeAttribute('required');
+      cardName.value = '';
+      cardNameWrap.classList.remove('invalid');
+    } else {
+      cardName.setAttribute('required','');
+    }
+  }
+  sameAsBilling.onchange = syncCardName;
+  syncCardName();
 
   // iOS Safari keeps a stale tap target for the sticky action bar after the
   // on-screen keyboard opens or closes: the bar is painted correctly but taps
