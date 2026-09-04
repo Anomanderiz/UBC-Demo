@@ -6,9 +6,7 @@
 <meta name="theme-color" content="#002145">
 <title>Give to UBC</title>
 <style>
-/* ---------- Whitney Salishan, UBC's licensed brand face ----------
-   One family, six weights plus italics; hierarchy comes from weight,
-   not from a second typeface. Serve these from a *.ubc.ca host. */
+/* ---------- Whitney Salishan, UBC's licensed brand face ----------*/
 @font-face{font-family:"Whitney Salishan";src:url("WhitneySalishan-Light.otf") format("opentype");font-weight:300;font-style:normal;font-display:swap}
 @font-face{font-family:"Whitney Salishan";src:url("WhitneySalishan-LightItalic.otf") format("opentype");font-weight:300;font-style:italic;font-display:swap}
 @font-face{font-family:"Whitney Salishan";src:url("WhitneySalishan-Book.otf") format("opentype");font-weight:400;font-style:normal;font-display:swap}
@@ -26,10 +24,9 @@
   --font-display: "Whitney Salishan",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --font-body: "Whitney Salishan",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
 
-  /* weights, named so the intent survives a redesign */
   --w-light:300;      /* large quiet text only */
   --w-book:400;       /* body copy */
-  --w-medium:500;     /* labels, controls, small print that must stay legible */
+  --w-medium:500;     /* labels, controls, small print*/
   --w-semibold:600;   /* headings, buttons, emphasis */
   --w-bold:700;       /* the gift amount and other single points of focus */
 
@@ -76,11 +73,7 @@ input,select{font:inherit;color:inherit}
 .bar{margin-top:10px;height:5px;background:var(--pill);border-radius:3px;overflow:hidden}
 .bar-fill{height:100%;width:18%;background:var(--ubc-blue);border-radius:3px;transition:width .34s cubic-bezier(.4,0,.2,1)}
 
-/* ---------- panels ----------
-   The track is absolutely positioned rather than height:100%, so its height is
-   definite: a percentage height against a flex item with an auto height does not
-   resolve, which would leave the track sized to its tallest panel and stretch
-   every other panel to match, giving short steps a screenful of dead scroll. */
+/* ---------- panels ---------- */
 .viewport{flex:1;min-height:0;overflow:hidden;position:relative}
 .track{
   position:absolute;top:0;left:0;bottom:0;
@@ -755,10 +748,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   sameAsBilling.onchange = syncCardName;
   syncCardName();
 
-  // iOS Safari keeps a stale tap target for the sticky action bar after the
-  // on-screen keyboard opens or closes: the bar is painted correctly but taps
-  // land where it used to be until the page is scrolled. Forcing a reflow of
-  // the bar whenever the visual viewport resizes realigns its hit region.
+  // iOS Safari stale tap target fix
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', function(){
       var a = document.getElementById('actions');
