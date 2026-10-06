@@ -49,8 +49,10 @@ stylesheet before anyone treats them as brand-accurate.
 
 ## Structure
 
-Four steps: amount, about you, receipt address, payment. Wallet buttons on
-step one bypass steps two to four entirely. Nothing is submitted anywhere; the
+Five steps: cause, amount, about you, receipt address, payment. The wallet
+button on the amount step bypasses steps three to five entirely. Both wallets
+are always shown for demo purposes; a live build would show only the one the
+device supports. Nothing is submitted anywhere; the
 payment fields are ordinary inputs, not a gateway iframe, so do not type a real
 card number into it.
 

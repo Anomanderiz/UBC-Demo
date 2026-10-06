@@ -62,6 +62,11 @@ input,select{font:inherit;color:inherit}
   display:flex;flex-direction:column;position:relative;
 }
 
+/* ---------- brand band ---------- */
+.brand{display:flex;align-items:center;gap:10px;background:var(--ubc-blue);color:#fff;padding:8px 20px;font-size:.86rem}
+.brand-mark{font-family:var(--font-display);font-weight:var(--w-bold);letter-spacing:.04em;border:1.5px solid #fff;padding:1px 6px;font-size:.78rem}
+.brand-name{font-weight:var(--w-medium)}
+
 /* ---------- progress ---------- */
 .top{
   position:sticky;top:0;z-index:20;background:#fff;
@@ -74,7 +79,8 @@ input,select{font:inherit;color:inherit}
 .bar-fill{height:100%;width:18%;background:var(--ubc-blue);border-radius:3px;transition:width .34s cubic-bezier(.4,0,.2,1)}
 
 /* ---------- panels ---------- */
-.viewport{flex:1;min-height:0;overflow:hidden;position:relative}
+/* clip, not hidden: focusing a field mid-slide must not scroll the track sideways */
+.viewport{flex:1;min-height:0;overflow:hidden;overflow:clip;position:relative}
 .track{
   position:absolute;top:0;left:0;bottom:0;
   display:flex;width:600%;transition:transform .34s cubic-bezier(.4,0,.2,1);
@@ -90,6 +96,8 @@ p.sub{margin:0 0 18px;font-size:.9rem;color:var(--muted)}
 fieldset{border:0;margin:0 0 18px;padding:0}
 legend{font-weight:var(--w-medium);font-size:.86rem;color:var(--muted);margin-bottom:8px;padding:0}
 .linkish{background:0;border:0;padding:0;color:var(--ubc-blue-mid);text-decoration:underline;cursor:pointer;font:inherit;font-weight:var(--w-medium);font-size:.9rem}
+/* inline text links: pad the hit area out past 24px without shifting the line */
+.linkish,.summary button{display:inline-block;padding:8px 6px;margin:-8px -6px -8px 0}
 
 /* ---------- cause picker ---------- */
 .causes{display:flex;flex-direction:column;gap:10px}
@@ -190,9 +198,12 @@ legend{font-weight:var(--w-medium);font-size:.86rem;color:var(--muted);margin-bo
   padding:10px 14px;margin-bottom:18px;font-size:.88rem;
 }
 .summary b{font-family:var(--font-display);font-weight:var(--w-bold);color:var(--ubc-blue)}
-.summary button{background:0;border:0;padding:0;color:var(--ubc-blue-mid);text-decoration:underline;cursor:pointer;font-weight:var(--w-medium);font-size:.82rem}
+.summary button{background:0;border:0;color:var(--ubc-blue-mid);text-decoration:underline;cursor:pointer;font-weight:var(--w-medium);font-size:.82rem}
 
 .secure{display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:var(--w-medium);color:var(--muted);margin-bottom:16px}
+.charity{font-size:.78rem;color:var(--muted);margin:4px 0 0}
+.wallet svg{width:17px;height:20px;margin-right:1px;fill:currentColor}
+.wallet[hidden]{display:none}
 
 /* ---------- done ---------- */
 .done{padding:40px 24px;text-align:center}
@@ -223,6 +234,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 <body>
 
 <main class="shell">
+
+  <div class="brand"><span class="brand-mark" aria-hidden="true">UBC</span><span class="brand-name">The University of British Columbia · give UBC</span></div>
 
   <div class="top">
     <div class="top-row">
@@ -289,13 +302,14 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           <div class="field" id="otherWrap" hidden style="margin-top:14px">
             <label for="otherAmt">Enter an amount in Canadian dollars</label>
             <input id="otherAmt" type="text" inputmode="decimal" placeholder="$">
+            <span class="err" id="otherAmtErr">Enter an amount of $5 or more</span>
           </div>
         </fieldset>
 
         <div class="wallets">
-          <button type="button" class="wallet" id="applePay">Give with&nbsp;<strong>&#63743;&nbsp;Pay</strong></button>
+          <button type="button" class="wallet" id="applePay" aria-label="Give with Apple Pay">Give with&nbsp;<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><strong>Pay</strong></button>
           <button type="button" class="wallet g" id="googlePay">Give with <strong>Google Pay</strong></button>
-          <p class="hint" style="margin:8px 0 0">E-payment options use the email and address already assigned to them. To receive a receipt to an alternate address, please email: support.ubc.ca</p>
+          <p class="hint" style="margin:8px 0 0">Your wallet supplies the name, email and address for your receipt. To have it sent somewhere else, email <a href="mailto:info@give.ubc.ca" style="color:var(--ubc-blue-mid)">info@give.ubc.ca</a>.</p>
         </div>
       </section>
 
@@ -330,6 +344,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
       <!-- ============ 4. receipt address ============ -->
       <section class="panel" id="p4" inert aria-labelledby="h4a">
+        <div class="summary"></div>
         <h2 class="q" id="h4a">Where should we send your tax receipt?</h2>
         <p class="sub" id="receiptWhy">The Canada Revenue Agency requires an address on every official donation receipt.</p>
 
@@ -343,11 +358,20 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
             <option value="OTHER">Another country</option>
           </select>
         </div>
+        <div class="field" id="countryOtherWrap" hidden>
+          <label for="countryOther">Which country?</label>
+          <input id="countryOther" autocomplete="country-name" autocapitalize="words">
+          <span class="err">Enter your country</span>
+        </div>
 
         <div class="field">
           <label for="addr1">Street address</label>
           <input id="addr1" autocomplete="address-line1" required>
           <span class="err">Enter your street address</span>
+        </div>
+        <div class="field">
+          <label for="addr2">Apt, suite or unit (optional)</label>
+          <input id="addr2" autocomplete="address-line2">
         </div>
         <div class="field">
           <label for="city">City</label>
@@ -374,7 +398,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           <div class="field">
             <label for="pcode"><span id="pcodeLabel">Postal code</span></label>
             <input id="pcode" autocomplete="postal-code" autocapitalize="characters" inputmode="text" maxlength="10" required>
-            <span class="err">Enter a postal code</span>
+            <span class="err" id="pcodeErr">Enter a postal code like V6T 1Z3</span>
           </div>
         </div>
         <p class="hint">Giving from outside Canada? <button type="button" class="linkish" id="changeCountry">Change country</button></p>
@@ -388,6 +412,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           <svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path fill="currentColor" d="M11 6V4.5A4 4 0 0 0 3 4.5V6H2v9h10V6h-1zM4.5 4.5a2.5 2.5 0 0 1 5 0V6h-5V4.5z"/></svg>
           Encrypted and processed by UBC's payment provider
         </div>
+        <p class="charity" style="margin:-10px 0 16px">UBC is a registered charity: 10816 1779 RR0001</p>
 
         <div class="field boxed" id="cardNameWrap" hidden>
           <label for="cardName">Name on card</label>
@@ -458,14 +483,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <ul>
       <li><b>Explain the funds.</b> The purpose of each fund is clearly explained using blurbs extracted from UBC pages.</li>
       <li><b>One element per screen.</b> The pattern GDS adopted as its default for public services after research showed it helps low-confidence users and works better on mobile.</li>
-      <li><b>Wallets before the form.</b> Apple Pay and Google Pay supply name, email and billing address in one authentication. Engaging Networks supports both natively through Stripe.</li>
-      <li><b>Fields cut from 16 to 9.</b> Title, address type, address line 2, telephone, cardholder name and relationship-to-UBC all removed or moved after the gift.</li>
+      <li><b>Wallets before the form.</b> Apple Pay and Google Pay supply name, email and billing address in one authentication. Both are shown here for the demo; live, each donor would see only the wallet their device supports. Engaging Networks offers both with supported gateways; whether UBC can switch them on depends on its payment processor, which I would confirm with the payments team.</li>
+      <li><b>Fields cut from 16 to 10, one of them optional.</b> Title, address type, telephone, cardholder name and relationship-to-UBC all removed or moved after the gift. An optional unit line stays, because many Vancouver donors live in apartments.</li>
+      <li><b>Amounts fit the frequency.</b> Monthly shows its own per-month amounts ($100 to $10) instead of carrying over a one-time ladder.</li>
+      <li><b>The $50 default is a hypothesis, not a finding.</b> The live form defaults to $125. A lower default may lift completion but lower the average gift, so I would A/B test it on its own rather than bundle it with the redesign.</li>
       <li><b>The progress bar starts partly filled.</b> The goal-gradient effect: people accelerate when a target looks close.</li>
       <li><b>Need for an address is explained.</b> CRA requires it on the receipt, and explaining it reduces resistance.</li>
       <li><b>Monthly is prominent but never pre-selected.</b> Pre-checked recurring boxes increase revenue but generate refunds and regulatory attention.</li>
       <li><b>One expiry field, not two dropdowns.</b> Two selects is roughly six taps; a formatted text input is four keystrokes.</li>
       <li><b>Autofill preserved.</b> Correct autocomplete attributes are used throughout to support autofill.</li>
-      <li><b>Accessibility.</b> Focus moves to each step heading, changes are announced to screen readers, motion respects the reduced-motion setting, and every selection is at least 48px.</li>
+      <li><b>Accessibility.</b> Focus moves to each step heading, changes are announced to screen readers, motion respects the reduced-motion setting, every choice button is at least 48px tall, and inline text links have tap areas larger than the 24px minimum.</li>
     </ul>
     <button class="close" id="closeSheet">Close</button>
   </div>
@@ -498,6 +525,13 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   var names = {1:"Your cause", 2:"Your gift", 3:"About you", 4:"Your receipt", 5:"Payment", 6:"Done"};
   var state = { cause: null, causeOther: null, amount: 50, freq: "once", other: null, country: "CA" };
 
+  // each frequency gets its own suggested amounts and default
+  var LADDERS = {
+    once:    { amounts: [1000, 500, 250, 125, 50], dflt: 50 },
+    monthly: { amounts: [100, 50, 30, 20, 10],     dflt: 20 }
+  };
+  var MIN_GIFT = 5;
+
   var track = document.getElementById('track');
   var barFill = document.getElementById('barFill');
   var bar = barFill.parentElement;
@@ -524,6 +558,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       if (i === step){ panels[i].removeAttribute('inert'); panels[i].removeAttribute('aria-hidden'); }
       else { panels[i].setAttribute('inert',''); panels[i].setAttribute('aria-hidden','true'); }
     }
+    track.parentElement.scrollLeft = 0;  // fallback for browsers without overflow:clip
     track.style.transform = 'translateX(-' + ((step-1) * (100/PANELS)) + '%)';
     barFill.style.width = fills[step] + '%';
     bar.setAttribute('aria-valuenow', Math.min(step, TOTAL));
@@ -542,8 +577,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
     var sumHtml = '<b>' + label() + '</b> toward ' + fundName() +
       ' &nbsp;<button type="button" class="editGift">Edit</button>';
-    document.getElementById('sumAbout').innerHTML = sumHtml;
-    document.getElementById('sumPay').innerHTML = sumHtml;
+    document.querySelectorAll('.summary').forEach(function(s){ s.innerHTML = sumHtml; });
     document.querySelectorAll('.editGift').forEach(function(b){
       b.onclick = function(){ step = 2; render(); };
     });
@@ -566,11 +600,28 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
                 (el.type === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(el.value)) ||
                 (el.id === 'exp' && !/^\d{2}\s*\/\s*\d{2}$/.test(el.value)) ||
                 (el.id === 'cvv' && !/^\d{3,4}$/.test(el.value)) ||
-                (el.id === 'card' && el.value.replace(/\s/g,'').length < 13);
+                (el.id === 'card' && el.value.replace(/\s/g,'').length < 13) ||
+                (el.id === 'pcode' && !postcodeOk(el.value));
       wrap.classList.toggle('invalid', bad);
       if (bad && ok) { el.focus(); ok = false; }
     });
     return ok;
+  }
+
+  function postcodeOk(v){
+    v = v.trim().toUpperCase();
+    if (state.country === 'CA') return /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z] ?\d[ABCEGHJ-NPRSTV-Z]\d$/.test(v);
+    if (state.country === 'US') return /^\d{5}(-\d{4})?$/.test(v);
+    return true;
+  }
+
+  // the "Other" amount must be a real number at or above the minimum
+  function amountOk(){
+    if (amt() >= MIN_GIFT) return true;
+    var wrap = document.getElementById('otherWrap');
+    wrap.classList.add('invalid');
+    document.getElementById('otherAmt').focus();
+    return false;
   }
 
   next.onclick = function(){
@@ -587,9 +638,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         return;
       }
     }
-    if (step === 2 && amt() <= 0) {
-      document.getElementById('otherAmt').focus(); return;
-    }
+    if (step === 2 && !amountOk()) return;
     if (step > 2 && step <= TOTAL && !validate(step)) return;
     step++; render();
   };
@@ -646,9 +695,27 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     b.onclick = function(){
       document.querySelectorAll('.freq .pill').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
       b.setAttribute('aria-pressed','true');
-      state.freq = b.dataset.freq; render();
+      state.freq = b.dataset.freq; setLadder(); render();
     };
   });
+
+  // swap the suggested amounts for the chosen frequency; a typed "Other" amount is kept
+  function setLadder(){
+    var ladder = LADDERS[state.freq];
+    var suffix = state.freq === 'monthly' ? '/mo' : '';
+    if (state.amount !== 'other') state.amount = ladder.dflt;
+    document.querySelectorAll('#amountPills .pill').forEach(function(b, i){
+      if (b.dataset.amt === 'other') {
+        b.setAttribute('aria-pressed', String(state.amount === 'other'));
+        return;
+      }
+      var n = ladder.amounts[i];
+      b.dataset.amt = n;
+      b.textContent = money(n) + suffix;
+      b.setAttribute('aria-label', money(n) + (suffix ? ' a month' : ''));
+      b.setAttribute('aria-pressed', String(state.amount === n));
+    });
+  }
   document.querySelectorAll('#amountPills .pill').forEach(function(b){
     b.onclick = function(){
       document.querySelectorAll('#amountPills .pill').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
@@ -659,6 +726,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         document.getElementById('otherAmt').focus();
       } else {
         state.amount = parseInt(b.dataset.amt,10); wrap.hidden = true;
+        wrap.classList.remove('invalid');
       }
       render();
     };
@@ -676,7 +744,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   // wallets skip straight to confirmation
   ['applePay','googlePay'].forEach(function(id){
     document.getElementById(id).onclick = function(){
-      if (amt() <= 0) { document.getElementById('otherAmt').focus(); return; }
+      if (!amountOk()) return;
       document.getElementById('doneLine').textContent =
         'Your gift of ' + label() + ' toward ' + fundName() + ' will make a real difference.';
       step = 6; render();
@@ -711,12 +779,25 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   };
   document.getElementById('country').onchange = function(e){
     var ca = e.target.value === 'CA';
+    var other = e.target.value === 'OTHER';
     state.country = e.target.value;
+
+    // "Another country" needs a name; some countries (e.g. Hong Kong) have no postal code
+    var countryOther = document.getElementById('countryOther');
+    document.getElementById('countryOtherWrap').hidden = !other;
+    countryOther.toggleAttribute('required', other);
+    countryOther.closest('.field').classList.remove('invalid');
+    var pcode = document.getElementById('pcode');
+    pcode.toggleAttribute('required', !other);
+    document.getElementById('pcodeErr').textContent =
+      ca ? 'Enter a postal code like V6T 1Z3' :
+      e.target.value === 'US' ? 'Enter a 5-digit ZIP code' : 'Enter a postal code';
     document.getElementById('provCaWrap').hidden = !ca;
     document.getElementById('provIntlWrap').hidden = ca;
     document.getElementById('prov').disabled = !ca;
     document.getElementById('provIntl').disabled = ca;
-    document.getElementById('pcodeLabel').textContent = ca ? 'Postal code' : 'Postal / ZIP code';
+    document.getElementById('pcodeLabel').textContent =
+      ca ? 'Postal code' : other ? 'Postal code (if any)' : 'Postal / ZIP code';
     document.getElementById('receiptWhy').textContent = ca
       ? 'The Canada Revenue Agency requires an address on every official donation receipt.'
       : 'We print your address on the official donation receipt so it is valid for your records.';
