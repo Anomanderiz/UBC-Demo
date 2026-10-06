@@ -58,3 +58,14 @@ card number into it.
 
 The "Why this design" link at the bottom opens the rationale sheet, which is
 the part worth showing across a table.
+
+## Presenting over screen share
+
+Open `phone.html` (for example `https://<your-deployment>/phone.html`). It shows
+the form inside an iPhone-sized frame with a Safari-style status bar and
+address bar, scaled to fill the window, with a round fingertip cursor so
+viewers can follow your taps. Press F11 for full screen. Shortcuts: `R`
+restarts the demo, `D` switches to a dark backdrop, `H` shows or hides the
+shortcut hint. Serve it over http (Vercel or the local server above); opened
+straight from disk, the fingertip cursor and shortcuts inside the phone don't
+work.
